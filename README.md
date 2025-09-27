@@ -25,10 +25,8 @@ Your chat messages are sent to Windmill's MCP, which handles all the automation 
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/nicolascodet/windmilltest)
 
-Then add these environment variables in Vercel:
-- `WINDMILL_HOST` - Your Windmill instance URL
-- `WINDMILL_TOKEN` - Your Windmill API token
-- `WINDMILL_WORKSPACE` - Workspace name (default: main)
+Then add this environment variable in Vercel:
+- `WINDMILL_MCP_URL` - Your complete Windmill MCP endpoint URL (get it from Windmill's MCP settings)
 
 ### Option 2: Local Development
 
@@ -39,9 +37,7 @@ npm run dev  # Runs on :3000
 
 Create `.env.local` file:
 ```
-WINDMILL_HOST=https://app.windmill.dev
-WINDMILL_TOKEN=your_token_here
-WINDMILL_WORKSPACE=main
+WINDMILL_MCP_URL=https://app.windmill.dev/api/mcp/w/main/sse?token=your-token
 ```
 
 ## Architecture
@@ -101,12 +97,9 @@ The Model Context Protocol lets Windmill and the LLM communicate directly, remov
 
 ## Environment Variables
 
-| Variable | Description | Default |
+| Variable | Description | Example |
 |----------|-------------|---------|
-| WINDMILL_HOST | Your Windmill instance | https://app.windmill.dev |
-| WINDMILL_TOKEN | API token | (required) |
-| WINDMILL_WORKSPACE | Workspace name | main |
-| PORT | Backend port | 3001 |
+| WINDMILL_MCP_URL | Complete MCP endpoint URL from Windmill | https://app.windmill.dev/api/mcp/w/main/sse?token=wm_xxx |
 
 ## Testing
 

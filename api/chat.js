@@ -6,27 +6,29 @@ export default async function handler(req, res) {
 
   const { prompt } = req.body
 
-  const WINDMILL_HOST = process.env.WINDMILL_HOST || 'https://app.windmill.dev'
-  const WINDMILL_TOKEN = process.env.WINDMILL_TOKEN
-  const WINDMILL_WORKSPACE = process.env.WINDMILL_WORKSPACE || 'main'
+  const WINDMILL_MCP_URL = process.env.WINDMILL_MCP_URL
 
-  if (!WINDMILL_TOKEN) {
+  if (!WINDMILL_MCP_URL) {
     return res.status(500).json({
       success: false,
-      message: 'Windmill token not configured',
+      message: 'WINDMILL_MCP_URL not configured',
       details: {}
     })
   }
 
-  // Windmill's MCP endpoint URL
-  const mcpEndpoint = `${WINDMILL_HOST}/api/mcp/w/${WINDMILL_WORKSPACE}/sse?token=${WINDMILL_TOKEN}`
+  // Extract base URL and token from MCP URL
+  const mcpUrl = new URL(WINDMILL_MCP_URL)
+  const baseUrl = `${mcpUrl.protocol}//${mcpUrl.host}`
+  const token = mcpUrl.searchParams.get('token')
+  const pathParts = mcpUrl.pathname.match(/\/api\/mcp\/w\/([^\/]+)/)
+  const workspace = pathParts ? pathParts[1] : 'main'
 
   try {
     // Send the prompt to Windmill's MCP endpoint
-    const response = await fetch(`${WINDMILL_HOST}/api/mcp/w/${WINDMILL_WORKSPACE}/messages`, {
+    const response = await fetch(`${baseUrl}/api/mcp/w/${workspace}/messages`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${WINDMILL_TOKEN}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -59,7 +61,7 @@ Respond concisely with what you created.`
       success: true,
       message: result.message || result.response || 'Command executed successfully',
       details: {
-        mcpEndpoint: mcpEndpoint,
+        mcpEndpoint: WINDMILL_MCP_URL,
         actions: result.actions || []
       }
     })

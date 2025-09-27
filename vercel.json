@@ -1,13 +1,7 @@
 {
   "functions": {
-    "api/nl2flow.js": {
+    "api/chat.js": {
       "maxDuration": 10
     }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ]
+  }
 }
