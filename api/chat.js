@@ -16,19 +16,11 @@ export default async function handler(req, res) {
     })
   }
 
-  // Extract base URL and token from MCP URL
-  const mcpUrl = new URL(WINDMILL_MCP_URL)
-  const baseUrl = `${mcpUrl.protocol}//${mcpUrl.host}`
-  const token = mcpUrl.searchParams.get('token')
-  const pathParts = mcpUrl.pathname.match(/\/api\/mcp\/w\/([^\/]+)/)
-  const workspace = pathParts ? pathParts[1] : 'main'
-
   try {
-    // Send the prompt to Windmill's MCP endpoint
-    const response = await fetch(`${baseUrl}/api/mcp/w/${workspace}/messages`, {
+    // Send the prompt directly to Windmill's MCP endpoint
+    const response = await fetch(WINDMILL_MCP_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
