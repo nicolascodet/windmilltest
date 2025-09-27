@@ -56,7 +56,12 @@ export default async function handler(req, res) {
               value: {
                 type: 'script',
                 path: scriptPath,
-                input_transforms: {}
+                input_transforms: {
+                  gmail: {
+                    type: 'static',
+                    value: '$res:u/user/gmail'
+                  }
+                }
               }
             }]
           },
@@ -133,7 +138,18 @@ export default async function handler(req, res) {
                   type: 'script',
                   path: scriptPath,
                   input_transforms: {
-                    message: 'expr:flow_input.webhook_body.message'
+                    message: {
+                      type: 'javascript',
+                      expr: 'flow_input.webhook_body.message || "New webhook received"'
+                    },
+                    channel: {
+                      type: 'static',
+                      value: '#general'
+                    },
+                    slack: {
+                      type: 'static',
+                      value: '$res:u/user/slack'
+                    }
                   }
                 }
               }
@@ -245,21 +261,51 @@ function getGmailScript() {
   return `
 import * as wmill from "windmill-client"
 
+type Gmail = {
+  token: string
+  refresh_token?: string
+}
+
 export async function main(
-  gmail_resource: string = "u/user/gmail"
+  gmail: Gmail
 ) {
-  const gmail = await wmill.getResource(gmail_resource)
+  const response = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=10&q=is:unread', {
+    headers: {
+      'Authorization': \`Bearer \${gmail.token}\`
+    }
+  })
 
-  const emails = [
-    { subject: "Meeting tomorrow", from: "boss@company.com" },
-    { subject: "Project update", from: "team@company.com" }
-  ]
+  if (!response.ok) {
+    throw new Error(\`Gmail API error: \${response.status}\`)
+  }
 
-  const summary = emails.map(e => \`• \${e.subject} (from \${e.from})\`).join('\\n')
+  const data = await response.json()
+  const messages = data.messages || []
+
+  // Fetch details for each message
+  const summaries = await Promise.all(
+    messages.slice(0, 5).map(async (msg) => {
+      const detailRes = await fetch(\`https://gmail.googleapis.com/gmail/v1/users/me/messages/\${msg.id}\`, {
+        headers: {
+          'Authorization': \`Bearer \${gmail.token}\`
+        }
+      })
+
+      if (!detailRes.ok) return null
+
+      const detail = await detailRes.json()
+      const headers = detail.payload?.headers || []
+      const subject = headers.find(h => h.name === 'Subject')?.value || 'No subject'
+      const from = headers.find(h => h.name === 'From')?.value || 'Unknown'
+
+      return \`• \${subject} (from \${from})\`
+    })
+  )
 
   return {
-    summary: \`Today's email summary:\\n\${summary}\`,
-    count: emails.length
+    summary: \`Unread emails:\\n\${summaries.filter(Boolean).join('\\n')}\`,
+    count: messages.length,
+    hasMore: messages.length > 5
   }
 }`
 }
@@ -268,19 +314,42 @@ function getSlackScript() {
   return `
 import * as wmill from "windmill-client"
 
+type Slack = {
+  token: string
+}
+
 export async function main(
   message: string,
   channel: string = "#general",
-  slack_resource: string = "u/user/slack"
+  slack: Slack
 ) {
-  const slack = await wmill.getResource(slack_resource)
+  const response = await fetch('https://slack.com/api/chat.postMessage', {
+    method: 'POST',
+    headers: {
+      'Authorization': \`Bearer \${slack.token}\`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      channel: channel,
+      text: message
+    })
+  })
 
-  console.log(\`Sending to Slack \${channel}: \${message}\`)
+  if (!response.ok) {
+    throw new Error(\`Slack API error: \${response.status}\`)
+  }
+
+  const result = await response.json()
+
+  if (!result.ok) {
+    throw new Error(\`Slack error: \${result.error}\`)
+  }
 
   return {
     success: true,
-    channel,
-    message
+    channel: result.channel,
+    ts: result.ts,
+    message: message
   }
 }`
 }
