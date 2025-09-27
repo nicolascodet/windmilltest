@@ -11,23 +11,27 @@ A white-label chat interface that converts natural language requests into Windmi
 
 ## Quick Start
 
-1. **Setup Environment**
-```bash
-cp .env.example .env
-# Edit .env with your Windmill credentials
-```
+### Option 1: Deploy to Vercel (Recommended)
 
-2. **Install & Run**
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/nicolascodet/windmilltest)
+
+Then add these environment variables in Vercel:
+- `WINDMILL_HOST` - Your Windmill instance URL
+- `WINDMILL_TOKEN` - Your Windmill API token
+- `WINDMILL_WORKSPACE` - Workspace name (default: main)
+
+### Option 2: Local Development
+
 ```bash
 npm install
-npm run dev      # Frontend on :3000
-node server.js   # Backend on :3001
+npm run dev  # Runs on :3000
 ```
 
-3. **Production Build**
-```bash
-npm run build
-NODE_ENV=production node server.js
+Create `.env.local` file:
+```
+WINDMILL_HOST=https://app.windmill.dev
+WINDMILL_TOKEN=your_token_here
+WINDMILL_WORKSPACE=main
 ```
 
 ## Architecture
