@@ -1,13 +1,23 @@
-# Windmill Chat Automation
+# Windmill Chat Automation (MCP-Powered)
 
-A white-label chat interface that converts natural language requests into Windmill workflows.
+A clean chat interface that uses Windmill's Model Context Protocol (MCP) to let users create automations in natural language.
+
+## How It Works
+
+Windmill exposes an MCP endpoint that gives LLMs direct access to:
+- Create resources (OAuth connections)
+- Create scripts and flows
+- Set up schedules
+- Execute workflows
+
+Your chat messages are sent to Windmill's MCP, which handles all the automation creation.
 
 ## Features
 
-✅ **Daily Schedules**: "Summarize my Gmail every day at 9am"
-✅ **Event Triggers**: "When webhook received, send Slack message"
-✅ **Immediate Runs**: "Run the sales report now"
-✅ **AI-Powered Intent Parsing** (optional with Claude)
+✅ **Natural Language**: "Summarize my Gmail every day at 9am"
+✅ **Direct Windmill Integration**: Uses Windmill's native MCP endpoint
+✅ **No Manual JSON**: Windmill handles the orchestration
+✅ **Real Automations**: Creates actual working flows in your workspace
 
 ## Quick Start
 
@@ -37,11 +47,13 @@ WINDMILL_WORKSPACE=main
 ## Architecture
 
 ```
-User Input → Intent Parser → Windmill API
-                ↓
-         Creates Scripts/Flows
-                ↓
-         Sets up Schedules/Webhooks
+User Chat → Frontend → /api/chat → Windmill MCP
+                                        ↓
+                              LLM orchestrates tools:
+                              - create_resource()
+                              - create_script()
+                              - create_flow()
+                              - create_schedule()
 ```
 
 ## Supported Commands
@@ -52,57 +64,40 @@ User Input → Intent Parser → Windmill API
 | "when webhook, send slack" | Script + Flow + Webhook URL |
 | "run report now" | Immediate job execution |
 
-## API Endpoints
+## API Endpoint
 
-**POST /api/nl2flow**
+**POST /api/chat**
 ```json
 {
   "prompt": "summarize my emails every day at 9am"
 }
 ```
 
-Response:
-```json
-{
-  "success": true,
-  "message": "✅ Set up daily Gmail summary at 9:00",
-  "details": {
-    "flow": "f/automations/gmail_daily_summary",
-    "schedule": "0 9 * * *"
-  }
-}
+The endpoint proxies to Windmill's MCP which:
+1. Understands the intent
+2. Creates necessary resources
+3. Builds the automation
+4. Returns confirmation
+
+## Windmill MCP Integration
+
+The app connects to Windmill's MCP endpoint:
+```
+https://YOUR_WINDMILL_HOST/api/mcp/w/WORKSPACE/sse?token=TOKEN
 ```
 
-## Windmill Integration
+MCP provides structured access to all Windmill operations:
+- Resources (OAuth connections)
+- Scripts and flows
+- Schedules and triggers
+- Job execution
 
-The app uses these Windmill endpoints:
-- `POST /scripts` - Create automation scripts
-- `POST /flows` - Build multi-step workflows
-- `POST /schedules` - Set up cron jobs
-- `POST /runs/flow/{path}` - Execute immediately
-- `GET /flows/{path}` - Get webhook URLs
+## Why MCP?
 
-## Customization
+**Without MCP**: Write complex JSON mappings, parse intents, manually call APIs
+**With MCP**: Windmill exposes tools, LLM orchestrates them directly
 
-### Branding
-Edit `src/App.css`:
-- Colors: Update gradient in `.header` and `.send-button`
-- Logo: Replace emoji in header
-- Fonts: Modify `font-family` in body
-
-### Add New Intents
-Edit `server.js` `parseIntent()`:
-```javascript
-if (lowerPrompt.includes('your_keyword')) {
-  intent.type = 'your_type'
-  intent.action = 'your_action'
-}
-```
-
-### Connect New Services
-1. Create resource script in `createResourceScript()`
-2. Add to intent parser
-3. Map to Windmill flow
+The Model Context Protocol lets Windmill and the LLM communicate directly, removing the need for translation layers.
 
 ## Environment Variables
 
@@ -111,7 +106,6 @@ if (lowerPrompt.includes('your_keyword')) {
 | WINDMILL_HOST | Your Windmill instance | https://app.windmill.dev |
 | WINDMILL_TOKEN | API token | (required) |
 | WINDMILL_WORKSPACE | Workspace name | main |
-| ANTHROPIC_API_KEY | For AI parsing | (optional) |
 | PORT | Backend port | 3001 |
 
 ## Testing

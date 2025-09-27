@@ -27,7 +27,7 @@ function App() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/nl2flow', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: userMessage })
