@@ -21,7 +21,8 @@ export default async function handler(req, res) {
     const response = await fetch(WINDMILL_MCP_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json, text/event-stream'
       },
       body: JSON.stringify({
         prompt: prompt,
