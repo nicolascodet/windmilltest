@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   try {
     // Test 1: Check if we can list scripts (basic auth test)
     console.log('Test 1: Listing scripts...')
-    const listResponse = await fetch(`${baseUrl}/api/w/${workspace}/scripts/list`, {
+    const listResponse = await fetch(`${baseUrl}/api/w/${workspace}/scripts`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -53,10 +53,10 @@ export default async function handler(req, res) {
     }
 
     const scripts = await listResponse.json()
-    console.log(`Found ${scripts.length} scripts`)
+    console.log(`Found ${Array.isArray(scripts) ? scripts.length : 0} scripts`)
 
     // Test 2: Try to create a simple test script
-    const testScriptPath = 'test_script_' + Date.now()
+    const testScriptPath = 'f/chat/test_script_' + Date.now()
     console.log('Test 2: Creating script:', testScriptPath)
 
     const createResponse = await fetch(`${baseUrl}/api/w/${workspace}/scripts/create`, {
@@ -92,7 +92,7 @@ export default async function handler(req, res) {
     // Test 3: Try to run the script
     console.log('Test 3: Running script...')
     const runResponse = await fetch(
-      `${baseUrl}/api/w/${workspace}/jobs/run/p/${testScriptPath}`,
+      `${baseUrl}/api/w/${workspace}/jobs/run_sync_get_result/p/${testScriptPath}`,
       {
         method: 'POST',
         headers: {
@@ -118,48 +118,25 @@ export default async function handler(req, res) {
       })
     }
 
-    const jobId = await runResponse.text()
-    console.log('Job started:', jobId)
-
-    // Wait for completion
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    // Test 4: Get job result
-    console.log('Test 4: Getting job result...')
-    const resultResponse = await fetch(
-      `${baseUrl}/api/w/${workspace}/jobs/get/${jobId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    )
-
-    if (!resultResponse.ok) {
-      const error = await resultResponse.text()
-      return res.json({
-        success: false,
-        message: `❌ Failed to get job result (${resultResponse.status})`,
-        details: {
-          error,
-          debugInfo,
-          test: 'get_job',
-          jobId
-        }
-      })
+    // For run_sync_get_result, the response is the result directly
+    let jobResult
+    try {
+      jobResult = await runResponse.json()
+      console.log('Job result:', jobResult)
+    } catch (e) {
+      const text = await runResponse.text()
+      console.log('Job response text:', text)
+      jobResult = { response: text }
     }
-
-    const jobData = await resultResponse.json()
 
     return res.json({
       success: true,
-      message: `✅ All Windmill API tests passed!\n\nWindmill is connected and working.\n\nDebug info:\n• Workspace: ${workspace}\n• Scripts found: ${scripts.length}\n• Test script created: ${testScriptPath}\n• Job executed: ${jobId}\n• Result: ${JSON.stringify(jobData.result || jobData.error || 'pending')}`,
+      message: `✅ All Windmill API tests passed!\n\nWindmill is connected and working.\n\nDebug info:\n• Workspace: ${workspace}\n• Scripts found: ${Array.isArray(scripts) ? scripts.length : 0}\n• Test script created: ${testScriptPath}\n• Result: ${JSON.stringify(jobResult)}`,
       details: {
         debugInfo,
-        testsRun: ['list_scripts', 'create_script', 'run_script', 'get_job'],
+        testsRun: ['list_scripts', 'create_script', 'run_script'],
         scriptPath: testScriptPath,
-        jobId,
-        jobData
+        jobResult
       }
     })
 
