@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/claude-rest.js": {
+    "api/windmill-instant.js": {
       "maxDuration": 10
     }
   }
