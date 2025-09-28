@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/windmill-chat.js": {
+    "api/claude-rest.js": {
       "maxDuration": 10
     }
   }
