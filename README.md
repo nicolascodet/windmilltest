@@ -26,8 +26,10 @@ Note: Windmill's MCP is designed for Claude Desktop/Cursor. This web app uses th
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/nicolascodet/windmilltest)
 
 Then add these environment variables in Vercel:
-- `WINDMILL_MCP_URL` - Your complete Windmill MCP endpoint URL (get it from Windmill's MCP settings)
-- `ANTHROPIC_API_KEY` - Your Claude API key for natural language understanding
+- `WINDMILL_API_TOKEN` - Your Windmill API token (User → Account settings → Tokens → New token)
+- `WINDMILL_HOST` - Your Windmill instance (default: https://app.windmill.dev)
+- `WINDMILL_WORKSPACE` - Your workspace name (default: testing124)
+- `ANTHROPIC_API_KEY` - (Optional) Claude API key for natural language
 
 ### Option 2: Local Development
 

@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/windmill-token-test.js": {
+    "api/windmill-final.js": {
       "maxDuration": 10
     }
   }
