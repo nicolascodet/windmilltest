@@ -143,7 +143,7 @@ Output format:
       }
 
       // Create the script
-      const scriptPath = `u/user/${operation}_instant`
+      const scriptPath = `${operation}_instant`
       let scriptContent = ''
 
       if (operation === 'gmail_latest') {
@@ -212,7 +212,7 @@ export async function main(since_minutes: number = 60) {
 
       // Run and wait for result
       const runResponse = await fetch(
-        `${baseUrl}/api/w/${workspace}/jobs/run_wait_result/p/${scriptPath}`,
+        `${baseUrl}/api/w/${workspace}/jobs/run_wait_result/s/${scriptPath}`,
         {
           method: 'POST',
           headers: {
@@ -226,44 +226,46 @@ export async function main(since_minutes: number = 60) {
         }
       )
 
-      if (runResponse.ok) {
-        const result = await runResponse.json()
-
-        // Format the actual result for chat
-        let chatMessage = ''
-
-        if (result.summary) {
-          // Summary result
-          chatMessage = result.summary
-          if (result.urgent > 0) {
-            chatMessage += `\n\n⚠️ ${result.urgent} urgent item(s) need attention`
-          }
-        } else if (Array.isArray(result)) {
-          // Email list result
-          chatMessage = "📬 Your latest emails:\n\n"
-          chatMessage += result.map((email, i) =>
-            `${i+1}. **${email.subject}**\n   From: ${email.from}\n   ${email.snippet}\n   _${email.received}_`
-          ).join('\n\n')
-        } else {
-          chatMessage = JSON.stringify(result, null, 2)
-        }
-
-        // Add suggestion for scheduling
-        if (!prompt.toLowerCase().includes('daily') && !prompt.toLowerCase().includes('every')) {
-          chatMessage += "\n\n💡 Want me to run this daily at 9am? Just say 'yes' or 'schedule it'"
-        }
-
-        return res.json({
-          success: true,
-          message: chatMessage,
-          details: {
-            executed: true,
-            script: scriptPath
-          }
-        })
-      } else {
-        throw new Error('Failed to execute script')
+      if (!runResponse.ok) {
+        const errorText = await runResponse.text()
+        console.error('Run failed:', errorText)
+        throw new Error(`Failed to execute script: ${errorText}`)
       }
+
+      const result = await runResponse.json()
+
+      // Format the actual result for chat
+      let chatMessage = ''
+
+      if (result.summary) {
+        // Summary result
+        chatMessage = result.summary
+        if (result.urgent > 0) {
+          chatMessage += `\n\n⚠️ ${result.urgent} urgent item(s) need attention`
+        }
+      } else if (Array.isArray(result)) {
+        // Email list result
+        chatMessage = "📬 Your latest emails:\n\n"
+        chatMessage += result.map((email, i) =>
+          `${i+1}. **${email.subject}**\n   From: ${email.from}\n   ${email.snippet}\n   _${email.received}_`
+        ).join('\n\n')
+      } else {
+        chatMessage = JSON.stringify(result, null, 2)
+      }
+
+      // Add suggestion for scheduling
+      if (!prompt.toLowerCase().includes('daily') && !prompt.toLowerCase().includes('every')) {
+        chatMessage += "\n\n💡 Want me to run this daily at 9am? Just say 'yes' or 'schedule it'"
+      }
+
+      return res.json({
+        success: true,
+        message: chatMessage,
+        details: {
+          executed: true,
+          script: scriptPath
+        }
+      })
     }
 
     // Step 3: Create schedule if requested
