@@ -4,13 +4,13 @@ A clean chat interface that uses Windmill's Model Context Protocol (MCP) to let 
 
 ## How It Works
 
-Windmill exposes an MCP endpoint that gives LLMs direct access to:
-- Create resources (OAuth connections)
-- Create scripts and flows
-- Set up schedules
-- Execute workflows
+This app bridges your chat to Windmill's automation engine:
+1. You type natural language requests
+2. The app parses your intent and calls Windmill's REST API
+3. Windmill creates real flows, schedules, and webhooks
+4. You get back confirmation with details
 
-Your chat messages are sent to Windmill's MCP, which handles all the automation creation.
+Note: Windmill's MCP is designed for Claude Desktop/Cursor. This web app uses the REST API directly.
 
 ## Features
 

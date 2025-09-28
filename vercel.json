@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/chat.js": {
+    "api/windmill-chat.js": {
       "maxDuration": 10
     }
   }
