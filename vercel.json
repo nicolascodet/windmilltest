@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/windmill-workspaces.js": {
+    "api/windmill-raw.js": {
       "maxDuration": 10
     }
   }
