@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/windmill-simple.js": {
+    "api/windmill-debug.js": {
       "maxDuration": 10
     }
   }

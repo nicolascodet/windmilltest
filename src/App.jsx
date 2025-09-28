@@ -27,7 +27,7 @@ function App() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/windmill-simple', {
+      const response = await fetch('/api/windmill-debug', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: userMessage })
