@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/windmill-raw.js": {
+    "api/windmill-correct.js": {
       "maxDuration": 10
     }
   }
