@@ -25,21 +25,28 @@ export default async function handler(req, res) {
         'Accept': 'application/json, text/event-stream'
       },
       body: JSON.stringify({
-        prompt: prompt,
-        system: `You are an automation assistant connected to Windmill.
+        jsonrpc: '2.0',
+        method: 'completion',
+        params: {
+          messages: [
+            {
+              role: 'system',
+              content: `You are an automation assistant connected to Windmill workspace.
 
-When users request automations like:
-- "Summarize my Gmail every day at 9am" - Create a flow that fetches Gmail messages and schedules it
-- "When webhook received, send to Slack" - Create a webhook-triggered flow that sends to Slack
-- "Run the sales report now" - Execute an existing flow immediately
+When users request automations:
+- "Summarize my Gmail every day at 9am" - Create a flow with Gmail integration and schedule
+- "When webhook received, send to Slack" - Create webhook-triggered flow with Slack
+- "Run sales report now" - Execute existing flow
 
-Use Windmill's tools to:
-1. Create/manage resources (Gmail, Slack OAuth connections)
-2. Create scripts and flows
-3. Set up schedules
-4. Execute flows
-
-Respond concisely with what you created.`
+Use available Windmill tools to create resources, scripts, flows, and schedules.`
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
+        },
+        id: Date.now()
       })
     })
 
